@@ -29,6 +29,7 @@ public class MainActivity extends Activity {
     private float density;
 
     private static final String[] FONTS = {"Condensed Bold", "Roboto Condensed", "Sans Serif", "Serif", "Monospace"};
+    private static final String[] TIMES = {"24-hour (23:52)", "12-hour (11:52 PM)"};
     private static final String[] DATES = {"dd/MM/yyyy", "dd MMM yyyy", "MMMM dd, yyyy", "EEE, dd MMM", "dd MMMM", "yyyy-MM-dd"};
     private static final String[] STYLES = {"Samurai Red / Black", "Crimson / White", "White / Red", "All Black", "All White"};
 
@@ -77,7 +78,7 @@ public class MainActivity extends Activity {
         previewClock.setGravity(Gravity.CENTER);
         FrameLayout.LayoutParams clockLp = new FrameLayout.LayoutParams(-2, -2, Gravity.CENTER);
         preview.addView(previewClock, clockLp);
-        updatePreview();
+        preview.post(this::updatePreview);
         addGap(page, 18);
 
         section(page, "CLOCK");
@@ -85,6 +86,7 @@ public class MainActivity extends Activity {
         addSeek(page, "Vertical position", "clock_y", 0, 100, 49);
         addSeek(page, "Vertical size", "clock_size_y", 50, 160, 100);
         addSeek(page, "Horizontal size", "clock_size_x", 50, 160, 100);
+        addSpinner(page, "Time format", "time_format", TIMES, 0);
         addSpinner(page, "Font", "font", FONTS, 0);
         addSpinner(page, "Clock colour style", "style", STYLES, 0);
         addGap(page, 10);
