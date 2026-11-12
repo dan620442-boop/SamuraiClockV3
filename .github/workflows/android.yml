@@ -28,6 +28,13 @@ jobs:
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
+      - name: Restore Samurai artwork
+        run: |
+          mkdir -p app/src/main/res/drawable-nodpi
+          curl -fsSL "https://raw.githubusercontent.com/dan620442-boop/SamuraiClockLiveWallpaper2/009f1fb34cbb46819b2513db5e1dc0382080c6ae/SamuraiClockLiveWallpaper-GitHub-ready.zip" -o "$RUNNER_TEMP/samurai-art.zip"
+          unzip -p "$RUNNER_TEMP/samurai-art.zip" "SamuraiClockLiveWallpaper/app/src/main/res/drawable-nodpi/samurai_wallpaper.png" > app/src/main/res/drawable-nodpi/samurai_wallpaper.png
+          test -s app/src/main/res/drawable-nodpi/samurai_wallpaper.png
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
