@@ -20,7 +20,11 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.content.SharedPreferences;
 import android.text.SpannableString;
-import android.text.style.ForegroundColorSpan;\nimport java.text.SimpleDateFormat;\nimport java.util.Date;\nimport java.util.Locale;\nimport android.widget.ImageView;
+import android.text.style.ForegroundColorSpan;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import android.widget.ImageView;
 
 public class MainActivity extends Activity {
     private SharedPreferences prefs;
