@@ -129,65 +129,51 @@ public class SamuraiWallpaperService extends WallpaperService {
             Date now = new Date();
             String hours = new SimpleDateFormat("HH", Locale.getDefault()).format(now);
             String minutes = new SimpleDateFormat("mm", Locale.getDefault()).format(now);
-            String day = new SimpleDateFormat("dd", Locale.getDefault()).format(now);
-            String month = new SimpleDateFormat("MMMM", Locale.getDefault()).format(now).toUpperCase(Locale.getDefault());
-            int seconds = Integer.parseInt(new SimpleDateFormat("ss", Locale.US).format(now));
+            String date = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(now);
 
-            // Keep the clock in the middle-right, with hours above minutes.
-            float size = Math.min(w * 0.19f, h * 0.088f);
-            float clockCenterX = w * 0.76f;
-            float clockCenterY = h * 0.50f;
-            float lineGap = size * 0.18f;
-            float hoursBaseline = clockCenterY - lineGap * 0.5f;
-            float minutesBaseline = clockCenterY + size * 0.98f + lineGap * 0.5f;
+            // Reference layout: a large horizontal clock, centred in the upper third.
+            float size = Math.min(w * 0.235f, h * 0.112f);
+            float centerX = w * 0.52f;
+            float baseline = h * 0.322f;
 
+            hoursPaint.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
+            minutesPaint.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
+            hoursPaint.setTextAlign(Paint.Align.LEFT);
+            minutesPaint.setTextAlign(Paint.Align.LEFT);
             hoursPaint.setTextSize(size);
             minutesPaint.setTextSize(size);
-            hoursPaint.setTextAlign(Paint.Align.CENTER);
-            minutesPaint.setTextAlign(Paint.Align.CENTER);
+            hoursPaint.setColor(0xFFE50920);
+            minutesPaint.setColor(0xFF080808);
+            hoursPaint.setShadowLayer(2f, 0f, 1f, 0x22000000);
+            minutesPaint.setShadowLayer(2f, 0f, 1f, 0x22000000);
 
-            // Date and month sit to the left of the clock in the same typeface and size.
+            Paint colonPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
+            colonPaint.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
+            colonPaint.setTextSize(size * 0.88f);
+            colonPaint.setTextAlign(Paint.Align.LEFT);
+            colonPaint.setColor(0xFFE50920);
+
+            float hoursWidth = hoursPaint.measureText(hours);
+            float colonWidth = colonPaint.measureText(":");
+            float minutesWidth = minutesPaint.measureText(minutes);
+            float gap = size * 0.025f;
+            float totalWidth = hoursWidth + colonWidth + minutesWidth + gap * 2f;
+            float x = centerX - totalWidth * 0.5f;
+
+            // Compact date label, centred above the digits in the same condensed family.
             datePaint.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
             datePaint.setTextAlign(Paint.Align.CENTER);
-            datePaint.setTextSize(Math.min(w * 0.060f, h * 0.030f));
-            datePaint.setColor(0xFF292929);
-            float dateCenterX = w * 0.43f;
-            float dateCenterY = clockCenterY + size * 0.16f;
-            float dateLineGap = datePaint.getTextSize() * 1.20f;
-            canvas.drawText(day, dateCenterX, dateCenterY - dateLineGap * 0.5f, datePaint);
-            canvas.drawText(month, dateCenterX, dateCenterY + dateLineGap * 0.5f, datePaint);
+            datePaint.setTextSize(Math.min(w * 0.065f, h * 0.031f));
+            datePaint.setColor(0xFF111111);
+            datePaint.setShadowLayer(1f, 0f, 1f, 0x22000000);
+            canvas.drawText(date, centerX, h * 0.193f, datePaint);
 
-            // Subtle crimson divider between the date column and vertical clock.
-            Paint rule = new Paint(Paint.ANTI_ALIAS_FLAG);
-            rule.setColor(0x66D51B32);
-            rule.setStrokeWidth(Math.max(2f, w * 0.002f));
-            canvas.drawLine(w * 0.585f, clockCenterY - size * 0.92f,
-                    w * 0.585f, clockCenterY + size * 1.70f, rule);
-
-            hoursPaint.setShader(new LinearGradient(0, hoursBaseline - size, 0, hoursBaseline + size * 0.10f,
-                    0xFFE51B35, 0x00E51B35, Shader.TileMode.CLAMP));
-            minutesPaint.setShader(new LinearGradient(0, minutesBaseline - size, 0, minutesBaseline + size * 0.10f,
-                    0xFF171717, 0x00171717, Shader.TileMode.CLAMP));
-
-            canvas.drawText(hours, clockCenterX, hoursBaseline, hoursPaint);
-            canvas.drawText(minutes, clockCenterX, minutesBaseline, minutesPaint);
-
-            // Small analogue seconds dial sits between the stacked hour and minute rows.
-            float dialCenterY = clockCenterY + size * 0.20f;
-            float radius = size * 0.105f;
-            accentPaint.setStyle(Paint.Style.STROKE);
-            accentPaint.setStrokeWidth(Math.max(2f, size * 0.012f));
-            canvas.drawCircle(clockCenterX, dialCenterY, radius, accentPaint);
-            double angle = Math.toRadians(seconds * 6.0 - 90.0);
-            float handX = clockCenterX + (float) Math.cos(angle) * radius * 0.78f;
-            float handY = dialCenterY + (float) Math.sin(angle) * radius * 0.78f;
-            accentPaint.setStrokeWidth(Math.max(2f, size * 0.014f));
-            canvas.drawLine(clockCenterX, dialCenterY, handX, handY, accentPaint);
-            accentPaint.setStyle(Paint.Style.FILL);
-            canvas.drawCircle(clockCenterX, dialCenterY, Math.max(2f, size * 0.018f), accentPaint);
-
-            hoursPaint.setShader(null);
-            minutesPaint.setShader(null);
+            // The two pairs stay on one line: red hours, red colon, black minutes.
+            canvas.drawText(hours, x, baseline, hoursPaint);
+            x += hoursWidth + gap;
+            canvas.drawText(":", x, baseline - size * 0.015f, colonPaint);
+            x += colonWidth + gap;
+            canvas.drawText(minutes, x, baseline, minutesPaint);
         }
 
         private void drawBottomFade(Canvas canvas, int w, int h) {
