@@ -49,7 +49,6 @@ public class SamuraiWallpaperService extends WallpaperService {
 
             datePaint.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
             datePaint.setTextAlign(Paint.Align.CENTER);
-            datePaint.setLetterSpacingSafe();
             datePaint.setColor(0xFF292929);
 
             accentPaint.setStyle(Paint.Style.STROKE);
