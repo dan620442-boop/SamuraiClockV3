@@ -137,7 +137,7 @@ public class SamuraiWallpaperService extends WallpaperService {
                 default: digitTypeface = Typeface.create("sans-serif-condensed", Typeface.BOLD); break;
             }
 
-            String timePattern = cfg.getBoolean("use_12_hour", false) ? "hh:mm" : "HH:mm";
+            String timePattern = cfg.getInt("time_format", 0) == 1 ? "hh:mm a" : "HH:mm";
             String time = new SimpleDateFormat(timePattern, Locale.getDefault()).format(now);
             String[] parts = time.split(":");
             String hours = parts[0];
