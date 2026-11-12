@@ -126,65 +126,80 @@ public class SamuraiWallpaperService extends WallpaperService {
         }
 
         private void drawClock(Canvas canvas, int w, int h) {
+            android.content.SharedPreferences cfg = getSharedPreferences("samurai_clock_settings", MODE_PRIVATE);
             Date now = new Date();
-            String hours = new SimpleDateFormat("HH", Locale.getDefault()).format(now);
-            String minutes = new SimpleDateFormat("mm", Locale.getDefault()).format(now);
-            String date = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(now);
+            int fontIndex = cfg.getInt("font", 0);
+            Typeface digitTypeface;
+            switch (fontIndex) {
+                case 2: digitTypeface = Typeface.create("sans-serif", Typeface.BOLD); break;
+                case 3: digitTypeface = Typeface.create("serif", Typeface.BOLD); break;
+                case 4: digitTypeface = Typeface.create("monospace", Typeface.BOLD); break;
+                default: digitTypeface = Typeface.create("sans-serif-condensed", Typeface.BOLD); break;
+            }
 
-            // Match the reference: very tall, tightly condensed digits, positioned just right of centre.
-            float size = Math.min(w * 0.98f, h * 0.38f);
-            float centerX = w * 0.61f;
-            float baseline = h * 0.49f;
-            float targetWidth = w * 0.57f;
+            String timePattern = cfg.getBoolean("use_12_hour", false) ? "hh:mm" : "HH:mm";
+            String time = new SimpleDateFormat(timePattern, Locale.getDefault()).format(now);
+            String[] parts = time.split(":");
+            String hours = parts[0];
+            String minutes = parts[1];
+            int dateIndex = cfg.getInt("date_format", 0);
+            String[] datePatterns = {"dd/MM/yyyy", "dd MMM yyyy", "MMMM dd, yyyy", "EEE, dd MMM", "dd MMMM", "yyyy-MM-dd"};
+            String date = new SimpleDateFormat(datePatterns[Math.max(0, Math.min(datePatterns.length - 1, dateIndex))],
+                    Locale.getDefault()).format(now);
 
-            hoursPaint.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
-            minutesPaint.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
+            float sizeY = cfg.getInt("clock_size_y", 100) / 100f;
+            float sizeX = cfg.getInt("clock_size_x", 100) / 100f;
+            float size = Math.min(w * 0.98f, h * 0.38f) * sizeY;
+            float centerX = w * cfg.getInt("clock_x", 61) / 100f;
+            float baseline = h * cfg.getInt("clock_y", 49) / 100f;
+
+            int style = cfg.getInt("style", 0);
+            int hourColor = style == 2 ? Color.WHITE : (style == 3 ? Color.BLACK : (style == 4 ? Color.WHITE : 0xFFE50920));
+            int minuteColor = style == 1 ? Color.WHITE : (style == 2 ? 0xFFE50920 : (style == 4 ? Color.WHITE : Color.BLACK));
+            int colonColor = 0xFFE50920;
+
+            hoursPaint.setTypeface(digitTypeface);
+            minutesPaint.setTypeface(digitTypeface);
             hoursPaint.setTextAlign(Paint.Align.LEFT);
             minutesPaint.setTextAlign(Paint.Align.LEFT);
             hoursPaint.setTextSize(size);
             minutesPaint.setTextSize(size);
-            hoursPaint.setTextScaleX(1f);
-            minutesPaint.setTextScaleX(1f);
-            hoursPaint.setColor(0xFFE50920);
-            minutesPaint.setColor(0xFF080808);
+            hoursPaint.setTextScaleX(sizeX);
+            minutesPaint.setTextScaleX(sizeX);
+            hoursPaint.setColor(hourColor);
+            minutesPaint.setColor(minuteColor);
             hoursPaint.setShadowLayer(2f, 0f, 1f, 0x22000000);
             minutesPaint.setShadowLayer(2f, 0f, 1f, 0x22000000);
 
             Paint colonPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
-            colonPaint.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
+            colonPaint.setTypeface(digitTypeface);
             colonPaint.setTextSize(size * 0.82f);
             colonPaint.setTextAlign(Paint.Align.LEFT);
-            colonPaint.setColor(0xFFE50920);
-            colonPaint.setTextScaleX(1f);
-
-            float naturalWidth = hoursPaint.measureText(hours)
-                    + colonPaint.measureText(":")
-                    + minutesPaint.measureText(minutes);
-            float squeeze = targetWidth / naturalWidth;
-            hoursPaint.setTextScaleX(squeeze);
-            minutesPaint.setTextScaleX(squeeze);
-            colonPaint.setTextScaleX(squeeze);
+            colonPaint.setTextScaleX(sizeX);
+            colonPaint.setColor(colonColor);
 
             float hoursWidth = hoursPaint.measureText(hours);
             float colonWidth = colonPaint.measureText(":");
             float minutesWidth = minutesPaint.measureText(minutes);
-            float gap = size * 0.012f * squeeze;
+            float gap = size * 0.012f * sizeX;
             float totalWidth = hoursWidth + colonWidth + minutesWidth + gap * 2f;
             float x = centerX - totalWidth * 0.5f;
 
-            // Date is centred above the clock in the same tall condensed type family.
-            datePaint.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
+            int dateSize = cfg.getInt("date_size", 100);
+            datePaint.setTypeface(digitTypeface);
             datePaint.setTextAlign(Paint.Align.CENTER);
-            datePaint.setTextSize(Math.min(w * 0.075f, h * 0.032f));
-            datePaint.setTextScaleX(0.88f);
+            datePaint.setTextSize(Math.min(w * 0.075f, h * 0.032f) * dateSize / 100f);
+            datePaint.setTextScaleX(0.88f * sizeX);
             datePaint.setColor(0xFF111111);
             datePaint.setShadowLayer(1f, 0f, 1f, 0x22000000);
-            canvas.drawText(date, centerX, h * 0.193f, datePaint);
+            float dateX = w * cfg.getInt("date_x", 50) / 100f;
+            float dateY = h * cfg.getInt("date_y", 19) / 100f;
+            canvas.drawText(date, dateX, dateY, datePaint);
 
             hoursPaint.setShader(new LinearGradient(0, baseline - size * 0.78f, 0, baseline + size * 0.10f,
-                    0xFFE50920, 0x00E50920, Shader.TileMode.CLAMP));
+                    hourColor, 0x00FFFFFF & hourColor, Shader.TileMode.CLAMP));
             minutesPaint.setShader(new LinearGradient(0, baseline - size * 0.78f, 0, baseline + size * 0.10f,
-                    0xFF080808, 0x00080808, Shader.TileMode.CLAMP));
+                    minuteColor, 0x00FFFFFF & minuteColor, Shader.TileMode.CLAMP));
 
             canvas.drawText(hours, x, baseline, hoursPaint);
             x += hoursWidth + gap;
