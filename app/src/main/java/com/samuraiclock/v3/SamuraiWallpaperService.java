@@ -129,56 +129,63 @@ public class SamuraiWallpaperService extends WallpaperService {
             Date now = new Date();
             String hours = new SimpleDateFormat("HH", Locale.getDefault()).format(now);
             String minutes = new SimpleDateFormat("mm", Locale.getDefault()).format(now);
-            String date = new SimpleDateFormat("EEEE  •  dd MMMM yyyy", Locale.getDefault()).format(now);
+            String day = new SimpleDateFormat("dd", Locale.getDefault()).format(now);
+            String month = new SimpleDateFormat("MMMM", Locale.getDefault()).format(now).toUpperCase(Locale.getDefault());
             int seconds = Integer.parseInt(new SimpleDateFormat("ss", Locale.US).format(now));
 
+            // Keep the clock in the middle-right, with hours above minutes.
             float size = Math.min(w * 0.19f, h * 0.088f);
-            float centerX = w * 0.61f;
-            float baseline = h * 0.315f;
+            float clockCenterX = w * 0.76f;
+            float clockCenterY = h * 0.50f;
+            float lineGap = size * 0.18f;
+            float hoursBaseline = clockCenterY - lineGap * 0.5f;
+            float minutesBaseline = clockCenterY + size * 0.98f + lineGap * 0.5f;
+
             hoursPaint.setTextSize(size);
             minutesPaint.setTextSize(size);
-            datePaint.setTextSize(Math.max(15f, w * 0.027f));
+            hoursPaint.setTextAlign(Paint.Align.CENTER);
+            minutesPaint.setTextAlign(Paint.Align.CENTER);
 
-            float hoursWidth = hoursPaint.measureText(hours);
-            float minutesWidth = minutesPaint.measureText(minutes);
-            float dialGap = size * 0.25f;
-            float totalWidth = hoursWidth + dialGap + minutesWidth;
-            float startX = centerX - totalWidth / 2f;
-
-            // The date floats above the clock; no translucent panel obscures the artwork.
+            // Date and month sit to the left of the clock in the same typeface and size.
+            datePaint.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
+            datePaint.setTextAlign(Paint.Align.CENTER);
+            datePaint.setTextSize(Math.min(w * 0.060f, h * 0.030f));
             datePaint.setColor(0xFF292929);
-            canvas.drawText(date.toUpperCase(Locale.getDefault()), centerX, baseline - size * 1.28f, datePaint);
+            float dateCenterX = w * 0.43f;
+            float dateCenterY = clockCenterY + size * 0.16f;
+            float dateLineGap = datePaint.getTextSize() * 1.20f;
+            canvas.drawText(day, dateCenterX, dateCenterY - dateLineGap * 0.5f, datePaint);
+            canvas.drawText(month, dateCenterX, dateCenterY + dateLineGap * 0.5f, datePaint);
 
+            // Subtle crimson divider between the date column and vertical clock.
             Paint rule = new Paint(Paint.ANTI_ALIAS_FLAG);
-            rule.setColor(0x99D51B32);
-            rule.setStrokeWidth(Math.max(2f, w * 0.0022f));
-            canvas.drawLine(centerX - w * 0.12f, baseline - size * 1.12f,
-                    centerX + w * 0.12f, baseline - size * 1.12f, rule);
+            rule.setColor(0x66D51B32);
+            rule.setStrokeWidth(Math.max(2f, w * 0.002f));
+            canvas.drawLine(w * 0.585f, clockCenterY - size * 0.92f,
+                    w * 0.585f, clockCenterY + size * 1.70f, rule);
 
-            // Each half has its own vertical fade: crimson hours and ink-black minutes.
-            hoursPaint.setShader(new LinearGradient(0, baseline - size, 0, baseline + size * 0.10f,
+            hoursPaint.setShader(new LinearGradient(0, hoursBaseline - size, 0, hoursBaseline + size * 0.10f,
                     0xFFE51B35, 0x00E51B35, Shader.TileMode.CLAMP));
-            minutesPaint.setShader(new LinearGradient(0, baseline - size, 0, baseline + size * 0.10f,
+            minutesPaint.setShader(new LinearGradient(0, minutesBaseline - size, 0, minutesBaseline + size * 0.10f,
                     0xFF171717, 0x00171717, Shader.TileMode.CLAMP));
 
-            canvas.drawText(hours, startX, baseline, hoursPaint);
-            float dialCenterX = startX + hoursWidth + dialGap / 2f;
-            float dialCenterY = baseline - size * 0.40f;
-            float radius = size * 0.105f;
+            canvas.drawText(hours, clockCenterX, hoursBaseline, hoursPaint);
+            canvas.drawText(minutes, clockCenterX, minutesBaseline, minutesPaint);
 
-            // A tiny analogue seconds dial is built into the separator.
+            // Small analogue seconds dial sits between the stacked hour and minute rows.
+            float dialCenterY = clockCenterY + size * 0.20f;
+            float radius = size * 0.105f;
             accentPaint.setStyle(Paint.Style.STROKE);
             accentPaint.setStrokeWidth(Math.max(2f, size * 0.012f));
-            canvas.drawCircle(dialCenterX, dialCenterY, radius, accentPaint);
+            canvas.drawCircle(clockCenterX, dialCenterY, radius, accentPaint);
             double angle = Math.toRadians(seconds * 6.0 - 90.0);
-            float handX = dialCenterX + (float) Math.cos(angle) * radius * 0.78f;
+            float handX = clockCenterX + (float) Math.cos(angle) * radius * 0.78f;
             float handY = dialCenterY + (float) Math.sin(angle) * radius * 0.78f;
             accentPaint.setStrokeWidth(Math.max(2f, size * 0.014f));
-            canvas.drawLine(dialCenterX, dialCenterY, handX, handY, accentPaint);
+            canvas.drawLine(clockCenterX, dialCenterY, handX, handY, accentPaint);
             accentPaint.setStyle(Paint.Style.FILL);
-            canvas.drawCircle(dialCenterX, dialCenterY, Math.max(2f, size * 0.018f), accentPaint);
+            canvas.drawCircle(clockCenterX, dialCenterY, Math.max(2f, size * 0.018f), accentPaint);
 
-            canvas.drawText(minutes, startX + hoursWidth + dialGap, baseline, minutesPaint);
             hoursPaint.setShader(null);
             minutesPaint.setShader(null);
         }
